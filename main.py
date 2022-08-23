@@ -17,9 +17,11 @@ def get_color():
 def get_access_token():
 
     # appId
-    app_id = config["app_id"]
+    # app_id = config["app_id"]
+    app_id = "wx85fe515f01a962eb"
     # appSecret
-    app_secret = config["app_secret"]
+    # app_secret = config["app_secret"]
+    app_secret = "f8627cb23fb4662fc17baccdec1abb38"
     post_url = ("https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid={}&secret={}"
                 .format(app_id, app_secret))
     try:
@@ -53,13 +55,18 @@ def get_weather(region):
         location_id = response["location"][0]["id"]
     weather_url = "https://devapi.qweather.com/v7/weather/now?location={}&key={}".format(location_id, key)
     response = get(weather_url, headers=headers).json()
+    print("测试",response)
     # 天气
     weather = response["now"]["text"]
     # 当前温度
     temp = response["now"]["temp"] + u"\N{DEGREE SIGN}" + "C"
+    #体感温度
+    feelslike = response["now"]["feelsLike"] + u"\N{DEGREE SIGN}" + "C"
     # 风向
     wind_dir = response["now"]["windDir"]
-    return weather, temp, wind_dir
+    #风速
+    wind_scale = response["now"]["windScale"]
+    return weather, temp, feelslike, wind_dir, wind_scale
 
 
 def get_birthday(birthday, year, today):
@@ -107,8 +114,8 @@ def get_ciba():
     url = "http://open.iciba.com/dsapi/"
     headers = {
         'Content-Type': 'application/json',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
-                      'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36'
+        'User-Agent': 'Mozilla / 5.0(Windows NT 10.0;Win64;x64) '
+                      'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36'
     }
     r = get(url, headers=headers)
     note_en = r.json()["content"]
@@ -116,7 +123,7 @@ def get_ciba():
     return note_ch, note_en
 
 
-def send_message(to_user, access_token, region_name, weather, temp, wind_dir, note_ch, note_en):
+def send_message(to_user, access_token, region_name, weather, temp, feelslike, wind_dir,wind_scale, note_ch, note_en):
     url = "https://api.weixin.qq.com/cgi-bin/message/template/send?access_token={}".format(access_token)
     week_list = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
     year = localtime().tm_year
@@ -158,8 +165,16 @@ def send_message(to_user, access_token, region_name, weather, temp, wind_dir, no
                 "value": temp,
                 "color": get_color()
             },
+            "feelslike": {
+                "value": feelslike,
+                "color": get_color()
+            },
             "wind_dir": {
                 "value": wind_dir,
+                "color": get_color()
+            },
+            "wind_scale": {
+                "value": wind_scale,
                 "color": get_color()
             },
             "love_day": {
@@ -180,9 +195,9 @@ def send_message(to_user, access_token, region_name, weather, temp, wind_dir, no
         # 获取距离下次生日的时间
         birth_day = get_birthday(value["birthday"], year, today)
         if birth_day == 0:
-            birthday_data = "今天{}生日哦，祝{}生日快乐！".format(value["name"], value["name"])
+            birthday_data = "\n今天{}生日哦，祝{}生日快乐！".format(value["name"], value["name"])
         else:
-            birthday_data = "距离{}的生日还有{}天".format(value["name"], birth_day)
+            birthday_data = "\n距离{}的生日还有{}天".format(value["name"], birth_day)
         # 将生日数据插入data
         data["data"][key] = {"value": birthday_data, "color": get_color()}
     headers = {
@@ -222,13 +237,33 @@ if __name__ == "__main__":
     users = config["user"]
     # 传入地区获取天气信息
     region = config["region"]
-    weather, temp, wind_dir = get_weather(region)
-    note_ch = config["note_ch"]
-    note_en = config["note_en"]
+    weather, temp, feelslike, wind_dir, wind_scale = get_weather(region)
+    # note_ch = config["note_ch"]
+    # 获取金山词霸中文版个人金句
+    note_ch = get_ciba()[0]
+    # note_en = config["note_en"]  获取自己设置的个人金句
+    #获取金山词霸英文版个人金句
+    note_en = get_ciba()[1]
+
     if note_ch == "" and note_en == "":
         # 获取词霸每日金句
         note_ch, note_en = get_ciba()
     # 公众号推送消息
     for user in users:
-        send_message(user, accessToken, region, weather, temp, wind_dir, note_ch, note_en)
+        send_message(user, accessToken, region, weather, temp, feelslike, wind_dir, wind_scale, note_en, note_ch)
     os.system("pause")
+
+
+# 模板内容
+# {{date.DATA}}
+# 地区：{{region.DATA}}
+# 天气：{{weather.DATA}}
+# 气温：{{temp.DATA}}
+# 风向：{{wind_dir.DATA}}
+# 今天是我们恋爱的第{{love_day.DATA}}天
+# {{birthday1.DATA}}
+# {{birthday2.DATA}}
+#
+#
+# {{note_en.DATA}}
+# {{note_ch.DATA}}
