@@ -3,11 +3,14 @@
 # 公众号appId
 "app_id": "wx85fe515f01a962eb",
 # 公众号appSecret
-"app_secret": "f8627cb23fb4662fc17baccdec1abb38",
-# 模板消息id
-"template_id": "whMxc69Mko9ZEbtO5B3auVBmSUlM06UswZeWh1yrYeA",
+"app_secret": "79fe64f4b713d757df5496e63673ff5c",
+# 模板消息id 天气预报
+#"template_id": "whMxc69Mko9ZEbtO5B3auVBmSUlM06UswZeWh1yrYeA",
+#模板消息修改版  爱你的每一天
+"template_id":"jxUvbDYQPmL_WRBWU5RVV99qI5MadXHxQni-qGh1804",
 # 接收公众号消息的微信号，如果有多个，需要在[]里用英文逗号间隔，例如["wx1", "wx2"]
-"user": ["o31k-5ovUr7P4_cnyMvRfl2zUFnA","o31k-5kec9LRbztWlvRiGctiX5L8"],
+"user": ["o31k-5ovUr7P4_cnyMvRfl2zUFnA"],
+#老婆微信号：     ,"o31k-5kec9LRbztWlvRiGctiX5L8"
 
 # 信息配置
 # 和风天气apikey
