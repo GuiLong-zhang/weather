@@ -7,7 +7,7 @@
 # 模板消息id 天气预报
 #"template_id": "whMxc69Mko9ZEbtO5B3auVBmSUlM06UswZeWh1yrYeA",
 #模板消息修改版  爱你的每一天
-"template_id":"eDF_UURej7eOv_8VZgtaS5zKIu97kHwTmnzXJwjiWDs",
+"template_id":"uuMYJ5T3gseWs3eX2s9NjBboWIyX1axE0-24wL0n5VU",
 # 接收公众号消息的微信号，如果有多个，需要在[]里用英文逗号间隔，例如["wx1", "wx2"]
 "user": ["o31k-5ovUr7P4_cnyMvRfl2zUFnA","o31k-5kec9LRbztWlvRiGctiX5L8"],
 #微信号：     ,"o31k-5kec9LRbztWlvRiGctiX5L8"
