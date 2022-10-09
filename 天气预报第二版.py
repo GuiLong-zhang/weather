@@ -21,11 +21,11 @@ def get_color():
 def get_access_token():
 
     # appId
-    app_id = config["app_id"]
-    # app_id = "wx85fe515f01a962eb"
+    # app_id = config["app_id"]
+    app_id = "wx85fe515f01a962eb"
     # appSecret
-    app_secret = config["app_secret"]
-    # app_secret = "f8627cb23fb4662fc17baccdec1abb38"
+    # app_secret = config["app_secret"]
+    app_secret = "f8627cb23fb4662fc17baccdec1abb38"
     post_url = ("https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid={}&secret={}"
                 .format(app_id, app_secret))
     try:
@@ -64,13 +64,42 @@ def get_weather(region):
     weather = response["now"]["text"]
     # 当前温度
     temp = response["now"]["temp"] + u"\N{DEGREE SIGN}" + "C"
+    # 最高最低温度
+    max_temp,min_temp = max_min_temp(region)
     #体感温度
     feelslike = response["now"]["feelsLike"] + u"\N{DEGREE SIGN}" + "C"
     # 风向
     wind_dir = response["now"]["windDir"]
     #风速
     wind_scale = response["now"]["windScale"]
-    return weather, temp, feelslike, wind_dir, wind_scale
+    return weather, temp, max_temp, min_temp, feelslike, wind_dir, wind_scale
+
+def max_min_temp(region):
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
+                      'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36'
+    }
+    key = config["weather_key"]
+    region_url = "https://geoapi.qweather.com/v2/city/lookup?location={}&key={}".format(region, key)
+    response = get(region_url, headers=headers).json()
+    print("测试2", response)
+    if response["code"] == "404":
+        print("推送消息失败，请检查地区名是否有误！")
+        os.system("pause")
+        sys.exit(1)
+    elif response["code"] == "401":
+        print("推送消息失败，请检查和风天气key是否正确！")
+        os.system("pause")
+        sys.exit(1)
+    else:
+        # 获取地区的location--id
+        location_id = response["location"][0]["id"]
+    max_min_temp_url = "https://devapi.qweather.com/v7/weather/3d?location={}&key={}".format(location_id, key)
+    response = get(max_min_temp_url, headers=headers).json()
+    print("测试", response['daily'][0])
+    max_temp = response['daily'][0]['tempMax'] + u"\N{DEGREE SIGN}" + "C"
+    min_temp = response['daily'][0]['tempMin'] + u"\N{DEGREE SIGN}" + "C"
+    return max_temp, min_temp
 
 
 def get_birthday(birthday, year, today):
@@ -128,7 +157,7 @@ def get_ciba():
 
 
 
-def send_message(to_user, access_token, region_name, weather, temp, feelslike, wind_dir,wind_scale, note_ch, note_en, lucky_):
+def send_message(to_user, access_token, region_name, weather, temp, max_temp, min_temp, feelslike, wind_dir,wind_scale, note_ch, note_en, lucky_):
     url = "https://api.weixin.qq.com/cgi-bin/message/template/send?access_token={}".format(access_token)
     week_list = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
     year = localtime().tm_year
@@ -168,6 +197,14 @@ def send_message(to_user, access_token, region_name, weather, temp, feelslike, w
             },
             "temp": {
                 "value": temp,
+                "color": get_color()
+            },
+            "max_temp": {
+                "value": max_temp,
+                "color": get_color()
+            },
+            "min_temp": {
+                "value": min_temp,
                 "color": get_color()
             },
             "feelslike": {
@@ -261,7 +298,7 @@ if __name__ == "__main__":
     users = config["user"]
     # 传入地区获取天气信息
     region = config["region"]
-    weather, temp, feelslike, wind_dir, wind_scale = get_weather(region)
+    weather, temp, max_temp, min_temp, feelslike, wind_dir, wind_scale = get_weather(region)
     # note_ch = config["note_ch"]
     # 获取金山词霸中文版个人金句
     note_ch = get_ciba()[0]
@@ -277,7 +314,7 @@ if __name__ == "__main__":
 
     # 公众号推送消息
     for user in users:
-        send_message(user, accessToken, region, weather, temp, feelslike, wind_dir, wind_scale, note_en, note_ch, lucky_)
+        send_message(user, accessToken, region, weather, temp, max_temp, min_temp, feelslike, wind_dir, wind_scale, note_en, note_ch, lucky_)
     os.system("pause")
 
 
@@ -285,7 +322,9 @@ if __name__ == "__main__":
 # {{date.DATA}}
 # 地区：{{region.DATA}}
 # 天气：{{weather.DATA}}
-# 气温：{{temp.DATA}}
+# 当前气温：{{temp.DATA}}
+# 今天最高气温：{{max_temp.DATA}}
+# 今天最低气温：{{min_temp.DATA}}
 # 体感温度：{{feelslike.DATA}}
 # 风向：{{wind_dir.DATA}}
 # 风速：{{wind_scale.DATA}}
