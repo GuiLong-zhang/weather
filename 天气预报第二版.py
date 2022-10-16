@@ -320,7 +320,7 @@ if __name__ == "__main__":
     # 公众号推送消息
     for user in users:
         send_message(user, accessToken, region, weather, temp, max_temp, min_temp, feelslike, wind_dir, wind_scale, note_en, note_ch, lucky_)
-    os.system("pause")
+    # os.system("pause")
 
 
 # 模板内容
